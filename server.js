@@ -43,10 +43,12 @@ database.serialize(function(){
 });
 
 server.get('/newUser', function(req, res){
-  if(req.query.username === undefined){
-    req.query.username = '';
+  var prepare = function(){
+    if(req.query.username === undefined){
+      req.query.username = '';
+    }
+    createNewUser();
   }
-  createNewUser();
 
   var createNewUser = function(){
     database.run(`
@@ -78,6 +80,52 @@ server.get('/newUser', function(req, res){
     });
     res.send('New user: ' + req.query.username + ' created successfuly');
   };
+
+  prepare();
+
+});
+
+server.get('/login', function(req, res){
+  var prepare = function(){
+    if(req.query.username === undefined){
+      req.query.username = '';
+    }
+    loginUser();
+  }
+
+  var loginNewUser = function(){
+    database.run(`
+      INSERT INTO users(username, password)
+        VALUES(:username, :password);`
+    ,{ ':username': req.query.username,
+        ':password': req.query.password
+      }, function(err){
+        if(err !== null){
+          loginError(err);
+          return;
+        }
+        loginSuccess();
+      });
+  };
+
+  var loginError = function(err){
+    res.status(200);
+    res.set({
+      'Content-Type': 'text/plain'
+    });
+    res.send(err);
+  };
+
+  var loginSuccess = function(){
+    //TODO: add a redirect to the game page
+    res.status(200);
+    res.set({
+      'Content-Type': 'text/plain'
+    });
+    res.send('New user: ' + req.query.username + ' created successfuly');
+  };
+
+  prepare();
 
 });
 
