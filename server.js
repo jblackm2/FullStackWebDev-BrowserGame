@@ -36,8 +36,8 @@ database.serialize(function(){
   database.run(`
     CREATE TABLE IF NOT EXISTS game_stats(
       user_id INTEGER REFERENCES users(id) NOT NULL,
-      high_score INTEGER,
-      timestamp INTEGER
+      high_score INTEGER DEFAULT(0),
+      timestamp INTEGER DEFAULT (strftime('%s', 'now'))
     );
   `);
 });
@@ -61,7 +61,22 @@ server.get('/newUser', function(req, res){
           newUserError(err);
           return;
         }
-        newUserSuccess();
+        //newUserSuccess("Added to user db");
+        createNewUser2();
+      });
+  };
+  var createNewUser2 = function(){
+    database.run(`
+      INSERT INTO game_stats(user_id)
+        VALUES(( SELECT id FROM users WHERE username = :username ));`
+        ,{ ':username': req.query.username
+          }
+    , function(err){
+        if(err !== null){
+          newUserError(err);
+          return;
+        }
+        newUserSuccess("Table2");
       });
   };
 
@@ -73,12 +88,13 @@ server.get('/newUser', function(req, res){
     res.send(err);
   };
 
-  var newUserSuccess = function(){
+  var newUserSuccess = function(message){
     res.status(200);
     res.set({
       'Content-Type': 'text/plain'
     });
-    res.send('New user: ' + req.query.username + ' created successfuly');
+    res.send(message);
+    //res.send('New user: ' + req.query.username + ' created successfuly');
   };
 
   prepare();
@@ -90,18 +106,26 @@ server.get('/login', function(req, res){
     if(req.query.username === undefined){
       req.query.username = '';
     }
+    if(req.query.password === undefined){
+      req.query.password = '';
+    }
     loginUser();
   }
 
-  var loginNewUser = function(){
-    database.run(`
-      INSERT INTO users(username, password)
-        VALUES(:username, :password);`
+  var loginUser = function(){
+    database.all(`
+      SELECT * FROM users
+        WHERE username = :username AND password = :password
+        ;`
     ,{ ':username': req.query.username,
         ':password': req.query.password
-      }, function(err){
+      }, function(err, rows){
         if(err !== null){
           loginError(err);
+          return;
+        }
+        if (rows.length === 0){
+          loginError('Not a valid login');
           return;
         }
         loginSuccess();
@@ -116,13 +140,61 @@ server.get('/login', function(req, res){
     res.send(err);
   };
 
-  var loginSuccess = function(){
+  var loginSuccess = function(rows){
     //TODO: add a redirect to the game page
     res.status(200);
     res.set({
       'Content-Type': 'text/plain'
     });
-    res.send('New user: ' + req.query.username + ' created successfuly');
+    res.send('User: ' + req.query.username + ' logged in');
+  };
+
+  prepare();
+
+});
+
+server.get('/getMaxScore', function(req, res){
+  var prepare = function(){
+    if(req.query.username === undefined){
+      req.query.username = '';
+    }
+    getMaxScore();
+  }
+
+  var getMaxScore = function(){
+    database.all(`
+      SELECT high_score FROM game_stats
+        JOIN users ON(game_stats.user_id = users.id)
+        WHERE username = :username
+        ;`
+    ,{ ':username': req.query.username
+      }, function(err, rows){
+        if(err !== null){
+          scoreError(err);
+          return;
+        }
+        /*if (rows.length === 0){
+          scoreError('No max score available.');
+          return;
+        }*/
+        scoreSuccess(rows);
+      });
+  };
+
+  var scoreError = function(err){
+    res.status(200);
+    res.set({
+      'Content-Type': 'text/plain'
+    });
+    res.send(err);
+  };
+
+  var scoreSuccess = function(rows){
+    res.status(200);
+    res.set({
+      'Content-Type': 'text/plain'
+    });
+    res.send(JSON.stringify(rows));
   };
 
   prepare();
