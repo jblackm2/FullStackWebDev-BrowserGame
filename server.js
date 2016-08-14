@@ -36,7 +36,7 @@ database.serialize(function(){
   database.run(`
     CREATE TABLE IF NOT EXISTS game_stats(
       user_id INTEGER REFERENCES users(id) NOT NULL,
-      high_score INTEGER DEFAULT(0),
+      score INTEGER DEFAULT(0),
       timestamp INTEGER DEFAULT (strftime('%s', 'now'))
     );
   `);
@@ -61,7 +61,6 @@ server.get('/newUser', function(req, res){
           newUserError(err);
           return;
         }
-        //newUserSuccess("Added to user db");
         createNewUser2();
       });
   };
@@ -76,7 +75,7 @@ server.get('/newUser', function(req, res){
           newUserError(err);
           return;
         }
-        newUserSuccess("Table2");
+        newUserSuccess();
       });
   };
 
@@ -88,13 +87,12 @@ server.get('/newUser', function(req, res){
     res.send(err);
   };
 
-  var newUserSuccess = function(message){
+  var newUserSuccess = function(){
     res.status(200);
     res.set({
       'Content-Type': 'text/plain'
     });
-    res.send(message);
-    //res.send('New user: ' + req.query.username + ' created successfuly');
+    res.send('New user: ' + req.query.username + ' created successfuly');
   };
 
   prepare();
@@ -163,12 +161,62 @@ server.get('/getMaxScore', function(req, res){
 
   var getMaxScore = function(){
     database.all(`
-      SELECT high_score FROM game_stats
+      SELECT MAX(score) FROM game_stats
         JOIN users ON(game_stats.user_id = users.id)
         WHERE username = :username
         ;`
     ,{ ':username': req.query.username
       }, function(err, rows){
+        if(err !== null){
+          scoreError(err);
+          return;
+        }
+        /*if (rows.length === 0){
+          scoreError('No max score available.');
+          return;
+        }*/
+        scoreSuccess(rows);
+      });
+  };
+
+  var scoreError = function(err){
+    res.status(200);
+    res.set({
+      'Content-Type': 'text/plain'
+    });
+    res.send(err);
+  };
+
+  var scoreSuccess = function(rows){
+    res.status(200);
+    res.set({
+      'Content-Type': 'text/plain'
+    });
+    res.send(JSON.stringify(rows));
+  };
+
+  prepare();
+
+});
+
+server.get('/addScore', function(req, res){
+  var prepare = function(){
+    if(req.query.username === undefined){
+      req.query.username = '';
+    }
+    if(req.query.score === undefined){
+      req.query.score = '';
+    }
+    addScore();
+  }
+
+  var addScore = function(){
+    database.run(`
+      INSERT INTO game_stats(user_id, score)
+        VALUES(( SELECT id FROM users WHERE username = :username ), :score);`
+        ,{ ':username': req.query.username,
+            ':score': req.query.score
+          }, function(err, rows){
         if(err !== null){
           scoreError(err);
           return;
