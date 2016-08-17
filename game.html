@@ -6,7 +6,7 @@
 	<body>
 		<canvas id="example"></canvas>
 		<script type="text/javascript">
-			var pixiRenderer = PIXI.autoDetectRenderer(800, 600, {
+			var pixiRenderer = PIXI.autoDetectRenderer(1240, 650, {
 			'view': document.getElementById('example'), 'backgroundColor': 0x1099BB
 			});
 
@@ -39,8 +39,8 @@
 				tilesheet.frame = rec;
 				test = new PIXI.Sprite(tilesheet);
 
-				farBackground = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-far.png"), pixiRenderer.width, pixiRenderer.height);
-				midBackground = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-mid.png"), pixiRenderer.width, pixiRenderer.height * 0.65);
+				farBackground = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-far.png"), 1240, 512);
+				midBackground = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-mid.png"), 1240, 512);
 
 				pixiBunny = new PIXI.Sprite(PIXI.Texture.fromImage('http://mercury.cs.pdx.edu/bunny.png'));
 				pixiBunny.position.x = Math.random() * 800.0;
@@ -52,16 +52,16 @@
 				farBackground.position.y = 0;
 				farBackground.tilePosition.x = 0;
 				farBackground.tilePosition.y = 0;
-				farBackground.width = pixiRenderer.width;
-				farBackground.height = pixiRenderer.height;
+				/*farBackground.width = pixiRenderer.width;
+				farBackground.height = pixiRenderer.height;*/
 
 				midBackground.position.x = 0;
-				midBackground.position.y = pixiRenderer.height * 0.65;
+				midBackground.position.y = pixiRenderer.height/2;
 				midBackground.tilePosition.x = 0;
 				midBackground.tilePosition.y = 0;
 				//midBackground.tilePosition.y = pixiRenderer.height * 0.65;
-				midBackground.width = pixiRenderer.width;
-				midBackground.height = midBackground.position.y - pixiRenderer.height;
+				//midBackground.width = pixiRenderer.width;
+				//midBackground.height = midBackground.position.y - pixiRenderer.height;
 
 
 				var rec2 = new PIXI.Rectangle(12, 5, 25, 42);
