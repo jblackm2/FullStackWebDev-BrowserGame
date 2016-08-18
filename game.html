@@ -24,6 +24,8 @@
 			PIXI.loader
 				.add("agent.png")
 				.add("tilesheet.png")
+				.add("resources/bg-far.png")
+				.add("resources/bg-mid.png")
 				.load(setup);
 			function setup(){
 				/*var agent = new PIXI.Sprite(
@@ -32,49 +34,11 @@
 				/*var tilesheet = new PIXI.Sprite(
 					PIXI.loader.resources["tilesheet.png"].texture
 				);*/
-				agent = PIXI.utils.TextureCache["agent.png"];
-				var tilesheet = PIXI.utils.TextureCache["tilesheet.png"];
+				
+				farBackground = initFarBackground();
+				midBackground = initMidBackground();
 
-				var rec = new PIXI.Rectangle(269, 0, 20, 20);
-				tilesheet.frame = rec;
-				test = new PIXI.Sprite(tilesheet);
-
-				farBackground = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-far.png"), 1240, 512);
-				midBackground = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-mid.png"), 1240, 512);
-
-				pixiBunny = new PIXI.Sprite(PIXI.Texture.fromImage('http://mercury.cs.pdx.edu/bunny.png'));
-				pixiBunny.position.x = Math.random() * 800.0;
-				pixiBunny.position.y = Math.random() * 600.0;
-				pixiBunny.anchor.x = 0.5;
-				pixiBunny.anchor.y = 0.5;
-
-				farBackground.position.x = 0;
-				farBackground.position.y = 0;
-				farBackground.tilePosition.x = 0;
-				farBackground.tilePosition.y = 0;
-				/*farBackground.width = pixiRenderer.width;
-				farBackground.height = pixiRenderer.height;*/
-
-				midBackground.position.x = 0;
-				midBackground.position.y = pixiRenderer.height/2;
-				midBackground.tilePosition.x = 0;
-				midBackground.tilePosition.y = 0;
-				//midBackground.tilePosition.y = pixiRenderer.height * 0.65;
-				//midBackground.width = pixiRenderer.width;
-				//midBackground.height = midBackground.position.y - pixiRenderer.height;
-
-
-				var rec2 = new PIXI.Rectangle(12, 5, 25, 42);
-				agent.frame = rec2;
-				agent2 = new PIXI.Sprite(agent)
-
-				test.position.x = 100;
-				test.position.y = 100;
-
-				agent2.position.x = 200;
-				agent2.position.y = 200;
-				agent2.anchor.x = 0.5;
-				agent2.anchor.y = 0.5;
+				initMinions();
 
 				pixiStage.addChild(farBackground);
 				pixiStage.addChild(midBackground);
@@ -83,8 +47,6 @@
 				pixiStage.addChild(test);
 				pixiStage.addChild(pixiBunny);
 
-				agent2.vx = 0;
-				agent2.vy = 0;
 				document.addEventListener('keydown', keyDown);
 				document.addEventListener('keyup', keyUp);
 
@@ -185,6 +147,65 @@
 					collision = false;
 				}
 				return collision;
+			}
+
+			function initFarBackground(){
+				var bg
+				//bg = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-far.png"), 1240, 512);
+				bg = new PIXI.extras.TilingSprite(PIXI.loader.resources["resources/bg-far.png"].texture, 1240, 512);
+
+
+				bg.position.x = 0;
+				bg.position.y = 0;
+				bg.tilePosition.x = 0;
+				bg.tilePosition.y = 0;
+
+				return bg;
+			}
+
+			function initMidBackground(){
+				var bg;
+				//bg = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-mid.png"), 1240, 512);
+				bg = new PIXI.extras.TilingSprite(PIXI.loader.resources["resources/bg-mid.png"].texture, 1240, 512);
+
+				bg.position.x = 0;
+				bg.position.y = pixiRenderer.height/2;
+				bg.tilePosition.x = 0;
+				bg.tilePosition.y = 0;
+				//midBackground.tilePosition.y = pixiRenderer.height * 0.65;
+				//midBackground.width = pixiRenderer.width;
+				//midBackground.height = midBackground.position.y - pixiRenderer.height;
+				return bg;
+			}
+
+			function initMinions(){
+				agent = PIXI.utils.TextureCache["agent.png"];
+				var tilesheet = PIXI.utils.TextureCache["tilesheet.png"];
+
+				var rec = new PIXI.Rectangle(269, 0, 20, 20);
+				tilesheet.frame = rec;
+				test = new PIXI.Sprite(tilesheet);
+
+				pixiBunny = new PIXI.Sprite(PIXI.Texture.fromImage('http://mercury.cs.pdx.edu/bunny.png'));
+				pixiBunny.position.x = Math.random() * 800.0;
+				pixiBunny.position.y = Math.random() * 600.0;
+				pixiBunny.anchor.x = 0.5;
+				pixiBunny.anchor.y = 0.5;
+
+				var rec2 = new PIXI.Rectangle(12, 5, 25, 42);
+				agent.frame = rec2;
+				agent2 = new PIXI.Sprite(agent)
+
+				test.position.x = 100;
+				test.position.y = 100;
+
+				agent2.position.x = 200;
+				agent2.position.y = 200;
+				agent2.anchor.x = 0.5;
+				agent2.anchor.y = 0.5;
+
+				agent2.vx = 0;
+				agent2.vy = 0;
 			}
 
 
