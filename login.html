@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0" />
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" />
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	</head>
+	<body>
+		<nav class="navbar navbar-inverse navbar-static-top">
+			<div class="container">
+				<div class="navbar-header">
+					<a class="navbar-brand">Justin's game</a>
+				</div>
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="#">home</a></li>
+					<li><a href="#">about</a></li>
+					<li><a href="#">contact</a></li>
+				</ul>
+				<ul class="nav navbar-nav nav navbar-nav navbar-right">
+					<li id="newUser"><a href="#Inputs" data-toggle="collapse">new user</a></li>
+					<li id="login"><a href="#Inputs" data-toggle="collapse">login</a></li>
+				</ul>
+			</div>
+			</nav>
+			<div class="container">
+				<div id="loginAlert" class="alert alert-danger collapse" role="alert">Enter both a user name and a password</div>
+				<div id="Inputs" class="collapse">
+					<div class="input-group">
+						<input id="Username" type="text" class="form-control" placeholder="Username">
+						<input id="Password" type="password" class="fomr-control" placeholder="Password">
+					</div>
+					<div class="form-group">
+						<button id="submit"class="btn btn-primary">submit</button>
+					</div>
+				</div>
+				<h1>this is a header</h1>
+				<p>this is a paragraph with some text.</p>
+			</div>
+
+	</body>
+	<script type="text/javascript">
+	var newFlag = false;
+	var loginFlag = false;
+	jQuery('#newUser').on('click', function(){
+		newFlag = true;
+		loginFlag = false;
+	});
+	jQuery('#login').on('click', function(){
+		newFlag = false;
+		loginFlag = true;
+	})
+	jQuery('#submit').on('click', function(){
+		var name = jQuery('#loginUsername').val();
+		var pass = jQuery('#loginPassword').val();
+		if(name === "" || pass === ""){
+			jQuery('#loginAlert').toggle();
+		}
+		//console.log("newflag: " + newFlag + " loginflag: " + loginFlag);
+	});
+
+</script>
+</html>
