@@ -42,6 +42,8 @@ database.serialize(function(){
   `);
 });
 
+server.use('/', express.static('./'));
+
 server.get('/newUser', function(req, res){
   var prepare = function(){
     if(req.query.username === undefined){
@@ -88,11 +90,12 @@ server.get('/newUser', function(req, res){
   };
 
   var newUserSuccess = function(){
-    res.status(200);
+    res.status(302);
     res.set({
       'Content-Type': 'text/plain'
     });
-    res.send('New user: ' + req.query.username + ' created successfuly');
+    res.redirect('/gameStart');
+    //res.send('New user: ' + req.query.username + ' created successfuly');
   };
 
   prepare();
@@ -139,12 +142,13 @@ server.get('/login', function(req, res){
   };
 
   var loginSuccess = function(rows){
-    //TODO: add a redirect to the game page
-    res.status(200);
+
+    res.status(302);
     res.set({
       'Content-Type': 'text/plain'
     });
-    res.send('User: ' + req.query.username + ' logged in');
+    res.redirect('/gameStart');
+    //res.send('User: ' + req.query.username + ' logged in');
   };
 
   prepare();
