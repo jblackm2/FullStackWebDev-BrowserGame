@@ -82,7 +82,7 @@ server.get('/newUser', function(req, res){
   };
 
   var newUserError = function(err){
-    res.status(200);
+    res.status(404);
     res.set({
       'Content-Type': 'text/plain'
     });
@@ -134,7 +134,7 @@ server.get('/login', function(req, res){
   };
 
   var loginError = function(err){
-    res.status(200);
+    res.status(404);
     res.set({
       'Content-Type': 'text/plain'
     });
@@ -142,7 +142,6 @@ server.get('/login', function(req, res){
   };
 
   var loginSuccess = function(rows){
-
     res.status(302);
     res.set({
       'Content-Type': 'text/plain'

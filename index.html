@@ -28,7 +28,7 @@
 			</div>
 			</nav>
 			<div class="container">
-				<div id="loginAlert" class="alert alert-danger collapse" role="alert">Enter both a user name and a password</div>
+				<div id="loginAlert" class="alert alert-danger collapse" role="alert">Error logging in: </div>
 				<div id="Inputs" class="collapse">
 					<div class="input-group">
 						<input id="Username" type="text" class="form-control" placeholder="Username">
@@ -58,7 +58,7 @@
 		var name = jQuery('#Username').val();
 		var pass = jQuery('#Password').val();
 		if(name === "" || pass === ""){
-			jQuery('#loginAlert').toggle();
+			jQuery('#loginAlert').toggle().append("Need both user name and password");
 		}
 		else{
 			if(newFlag){
@@ -67,7 +67,9 @@
 					'url': '/newUser?username=' + name + '&password=' + pass,
 					'dataType': 'text',
 					'success': function(data){console.log("success"); },
-					'error': function(data){console.log("failure"); }
+					'error': function(data){
+						jQuery('#LoginAlert').toggle().append(data.responseText);
+					}
 				});
 			}
 			else if(loginFlag){
@@ -75,8 +77,10 @@
 					'type':'GET',
 					'url': '/login?username=' + name + '&password=' + pass,
 					'dataType': 'text',
-					'success': function(data){console.log(data); },
-					'error': function(data){console.log(data); }
+					'success': function(data){console.log("Hi"); },
+					'error': function(data){
+						jQuery('#LoginAlert').toggle().append(data.responseText);
+					}
 				});
 			}
 		}
