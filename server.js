@@ -94,8 +94,8 @@ server.get('/newUser', function(req, res){
     res.set({
       'Content-Type': 'text/plain'
     });
-    res.redirect('/gameStart');
-    //res.send('New user: ' + req.query.username + ' created successfuly');
+    //res.redirect('/gameStart');
+    res.send('New user: ' + req.query.username + ' created successfuly');
   };
 
   prepare();
@@ -147,8 +147,8 @@ server.get('/login', function(req, res){
     res.set({
       'Content-Type': 'text/plain'
     });
-    res.redirect('/gameStart');
-    //res.send('User: ' + req.query.username + ' logged in');
+    //res.redirect('/gameStart');
+    res.send('User: ' + req.query.username + ' logged in');
   };
 
   prepare();
