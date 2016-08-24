@@ -20,12 +20,14 @@
 			var pixiBunny;
 			var farBackground;
 			var midBackground;
+			var path;
 
 			PIXI.loader
-				.add("agent.png")
-				.add("tilesheet.png")
+				.add("resources/agent.png")
+				.add("resources/tilesheet.png")
 				.add("resources/bg-far.png")
 				.add("resources/bg-mid.png")
+				.add('resources/path.json')
 				.load(setup);
 			function setup(){
 				/*var agent = new PIXI.Sprite(
@@ -34,17 +36,23 @@
 				/*var tilesheet = new PIXI.Sprite(
 					PIXI.loader.resources["tilesheet.png"].texture
 				);*/
-				
+
 				farBackground = initFarBackground();
 				midBackground = initMidBackground();
+				path = initPath();
 
 				initMinions();
 
 				pixiStage.addChild(farBackground);
 				pixiStage.addChild(midBackground);
+
+				for(var i = 0; i < path.length; i += 1){
+					pixiStage.addChild(path[i]);
+				}
+
 				pixiStage.addChild(agent2);
 
-				pixiStage.addChild(test);
+				//pixiStage.addChild(test);
 				pixiStage.addChild(pixiBunny);
 
 				document.addEventListener('keydown', keyDown);
@@ -65,11 +73,13 @@
 			};
 
 			function play(){
+				shiftPath();
 				agent2.position.x += agent2.vx;
 				agent2.position.y += agent2.vy;
 
 				farBackground.tilePosition.x -= 0.256;
 				midBackground.tilePosition.x -= 0.512;
+
 
 				if (checkForCollisions(agent2, pixiBunny)){
 					console.log("Hit");
@@ -179,8 +189,8 @@
 			}
 
 			function initMinions(){
-				agent = PIXI.utils.TextureCache["agent.png"];
-				var tilesheet = PIXI.utils.TextureCache["tilesheet.png"];
+				agent = PIXI.utils.TextureCache["resources/agent.png"];
+				var tilesheet = PIXI.utils.TextureCache["resources/tilesheet.png"];
 
 				var rec = new PIXI.Rectangle(269, 0, 20, 20);
 				tilesheet.frame = rec;
@@ -206,6 +216,140 @@
 
 				agent2.vx = 0;
 				agent2.vy = 0;
+			}
+
+			function initPath(){
+				//var tilesheet = PIXI.utils.TextureCache["resources/path.json"];
+				var pathPieces = [];
+				var pathPiece = PIXI.Sprite.fromFrame("decoration_03");
+  			pathPiece.position.x = -63;
+  			pathPiece.position.y = 64;
+				pathPieces.push(pathPiece);
+
+				var pathPiece1 = PIXI.Sprite.fromFrame("decoration_03");
+  			pathPiece1.position.x = 0;
+  			pathPiece1.position.y = 64;
+				pathPieces.push(pathPiece1);
+
+				var pathPiece2 = PIXI.Sprite.fromFrame("window_01");
+  			pathPiece2.position.x = 63;
+  			pathPiece2.position.y = 64;
+				pathPieces.push(pathPiece2);
+
+				var pathPiece3 = PIXI.Sprite.fromFrame("decoration_02");
+  			pathPiece3.position.x = 126;
+  			pathPiece3.position.y = 64;
+				pathPieces.push(pathPiece3);
+
+				var pathPiece4 = PIXI.Sprite.fromFrame("decoration_03");
+  			pathPiece4.position.x = 189;
+  			pathPiece4.position.y = 64;
+				pathPieces.push(pathPiece4);
+
+				var pathPiece5 = PIXI.Sprite.fromFrame("decoration_01");
+  			pathPiece5.position.x = 252;
+  			pathPiece5.position.y = 64;
+				pathPieces.push(pathPiece5);
+
+				var pathPiece6 = PIXI.Sprite.fromFrame("window_01");
+  			pathPiece6.position.x = 315;
+  			pathPiece6.position.y = 64;
+				pathPieces.push(pathPiece6);
+
+				var pathPiece7 = PIXI.Sprite.fromFrame("window_02");
+  			pathPiece7.position.x = 378;
+  			pathPiece7.position.y = 64;
+				pathPieces.push(pathPiece7);
+
+				var pathPiece8 = PIXI.Sprite.fromFrame("decoration_03");
+  			pathPiece8.position.x = 441;
+  			pathPiece8.position.y = 64;
+				pathPieces.push(pathPiece8);
+
+				var pathPiece9 = PIXI.Sprite.fromFrame("decoration_01");
+  			pathPiece9.position.x = 504;
+  			pathPiece9.position.y = 64;
+				pathPieces.push(pathPiece9);
+
+				var pathPiece10 = PIXI.Sprite.fromFrame("window_02");
+  			pathPiece10.position.x = 567;
+  			pathPiece10.position.y = 64;
+				pathPieces.push(pathPiece10);
+
+				var pathPiece11 = PIXI.Sprite.fromFrame("decoration_03");
+  			pathPiece11.position.x = 630;
+  			pathPiece11.position.y = 64;
+				pathPieces.push(pathPiece11);
+
+				var pathPiece12 = PIXI.Sprite.fromFrame("decoration_02");
+  			pathPiece12.position.x = 693;
+  			pathPiece12.position.y = 64;
+				pathPieces.push(pathPiece12);
+
+				var pathPiece13 = PIXI.Sprite.fromFrame("window_01");
+  			pathPiece13.position.x = 756;
+  			pathPiece13.position.y = 64;
+				pathPieces.push(pathPiece13);
+
+				var pathPiece14 = PIXI.Sprite.fromFrame("window_02");
+  			pathPiece14.position.x = 819;
+  			pathPiece14.position.y = 64;
+				pathPieces.push(pathPiece14);
+
+				var pathPiece15 = PIXI.Sprite.fromFrame("decoration_01");
+  			pathPiece15.position.x = 882;
+  			pathPiece15.position.y = 64;
+				pathPieces.push(pathPiece15);
+
+				var pathPiece16 = PIXI.Sprite.fromFrame("decoration_01");
+  			pathPiece16.position.x = 945;
+  			pathPiece16.position.y = 64;
+				pathPieces.push(pathPiece16);
+
+				var pathPiece17 = PIXI.Sprite.fromFrame("decoration_03");
+  			pathPiece17.position.x = 1008;
+  			pathPiece17.position.y = 64;
+				pathPieces.push(pathPiece17);
+
+				var pathPiece18 = PIXI.Sprite.fromFrame("window_01");
+  			pathPiece18.position.x = 1071;
+  			pathPiece18.position.y = 64;
+				pathPieces.push(pathPiece18);
+
+				var pathPiece19 = PIXI.Sprite.fromFrame("decoration_02");
+  			pathPiece19.position.x = 1134;
+  			pathPiece19.position.y = 64;
+				pathPieces.push(pathPiece19);
+
+				var pathPiece20 = PIXI.Sprite.fromFrame("window_02");
+  			pathPiece20.position.x = 1197;
+  			pathPiece20.position.y = 64;
+				pathPieces.push(pathPiece20);
+
+				var pathPiece21 = PIXI.Sprite.fromFrame("decoration_01");
+  			pathPiece21.position.x = 1260;
+  			pathPiece21.position.y = 64;
+				pathPieces.push(pathPiece21);
+
+				var pathPiece22 = PIXI.Sprite.fromFrame("decoration_01");
+  			pathPiece22.position.x = 1323;
+  			pathPiece22.position.y = 64;
+				pathPieces.push(pathPiece22);
+
+				return pathPieces;
+			}
+
+			function shiftPath(){
+				for(var i = 0; i < path.length; i += 1){
+					path[i].position.x -= 0.6;
+
+					if(path[0].position.x < -64){
+						var temp = path.shift();
+						temp.position.x = 1323;
+						path.push(temp);
+
+					}
+				}
 			}
 
 
