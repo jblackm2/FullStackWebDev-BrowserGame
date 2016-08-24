@@ -4,6 +4,7 @@ var express = require('express');
 var sqlite = require('sqlite3');
 var passport = require('passport');
 var strategy = require('passport-http');
+var crypto = require('crypto');
 
 var server = express();
 var database = new sqlite.Database('database.sqlite');
@@ -21,6 +22,12 @@ passport.use(new strategy.BasicStrategy(
       return done(null, false);
   }
 ));*/
+
+function hashPassword(password) {
+  var hash = crypto.createHash('sha256');
+  hash.update(password);
+  return hash.digest('hex');
+}
 
 database.serialize(function(){
   database.run('PRAGMA foreign_keys = ON;');
@@ -57,7 +64,7 @@ server.get('/newUser', function(req, res){
       INSERT INTO users(username, password)
         VALUES(:username, :password);`
     ,{ ':username': req.query.username,
-        ':password': req.query.password
+        ':password': hashPassword(req.query.password)
       }, function(err){
         if(err !== null){
           newUserError(err);
@@ -119,7 +126,7 @@ server.get('/login', function(req, res){
         WHERE username = :username AND password = :password
         ;`
     ,{ ':username': req.query.username,
-        ':password': req.query.password
+        ':password': hashPassword(req.query.password)
       }, function(err, rows){
         if(err !== null){
           loginError(err);
