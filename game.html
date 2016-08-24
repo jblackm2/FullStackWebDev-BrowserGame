@@ -73,12 +73,15 @@
 			};
 
 			function play(){
-				shiftPath();
-				agent2.position.x += agent2.vx;
-				agent2.position.y += agent2.vy;
+				if(agent2.vx != 0 || agent2.vy != 0){
+					shiftPath();
+					agent2.position.x += agent2.vx;
+					agent2.position.y += agent2.vy;
 
-				farBackground.tilePosition.x -= 0.256;
-				midBackground.tilePosition.x -= 0.512;
+					farBackground.tilePosition.x -= 0.256;
+					midBackground.tilePosition.x -= 0.512;
+				}
+
 
 
 				if (checkForCollisions(agent2, pixiBunny)){
