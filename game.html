@@ -13,7 +13,7 @@
 			var pixiStage = new PIXI.Container();
 
 			var agent;
-			var agent2;
+			var robot;
 			var test;
 			var state;
 			var functionGameloop;
@@ -21,6 +21,11 @@
 			var farBackground;
 			var midBackground;
 			var path;
+			var gameScore = 0;
+			var displayScore;
+			var anim1;
+			var anim2;
+			var bullet;
 
 			PIXI.loader
 				.add("resources/agent.png")
@@ -28,6 +33,9 @@
 				.add("resources/bg-far.png")
 				.add("resources/bg-mid.png")
 				.add('resources/path.json')
+				.add('resources/robot0.json')
+				.add('resources/robot1.json')
+				.add('resources/bullet.png')
 				.load(setup);
 			function setup(){
 				/*var agent = new PIXI.Sprite(
@@ -40,8 +48,9 @@
 				farBackground = initFarBackground();
 				midBackground = initMidBackground();
 				path = initPath();
-
-				initMinions();
+				displayScore = new PIXI.Text('Score: ' + gameScore);
+				displayScore.position.x = 10;
+				displayScore.position.y = 10;
 
 				pixiStage.addChild(farBackground);
 				pixiStage.addChild(midBackground);
@@ -50,13 +59,26 @@
 					pixiStage.addChild(path[i]);
 				}
 
-				pixiStage.addChild(agent2);
+				anim1 = animateRunInit();
+				//anim2 = animateIdleInit();
 
-				//pixiStage.addChild(test);
+				initMinions();
+
+				pixiStage.addChild(robot);
+
+				pixiStage.addChild(displayScore);
+
 				pixiStage.addChild(pixiBunny);
+
+				pixiStage.addChild(bullet);
+
+
+
+
 
 				document.addEventListener('keydown', keyDown);
 				document.addEventListener('keyup', keyUp);
+				document.addEventListener('mousedown', mousedown);
 
 				state = play;
 
@@ -73,65 +95,90 @@
 			};
 
 			function play(){
-				if(agent2.vx != 0 || agent2.vy != 0){
+				//bullet.position.x += bullet.vx;
+				//bullet.position.y += bullet.vy;
+				if(robot.vx != 0 || robot.vy != 0){
 					shiftPath();
-					agent2.position.x += agent2.vx;
-					agent2.position.y += agent2.vy;
+					robot.position.x += robot.vx;
+					robot.position.y += robot.vy;
+
+
 
 					farBackground.tilePosition.x -= 0.256;
 					midBackground.tilePosition.x -= 0.512;
+					animateRun(anim1);
+				}
+				else{
+					//animateIdle(anim2);
+					stopRun(anim1);
 				}
 
-
-
-				if (checkForCollisions(agent2, pixiBunny)){
-					console.log("Hit");
+				if (checkForCollisions(robot, pixiBunny)){
+					updateGameScore();
 				}
 			}
 
 			function keyDown(key){
 				//a
 				if(key.keyCode === 65){
-					if(agent2.position.x - agent2.width/2 > 0 ){
-						//agent2.position.x -= 2;
-						agent2.vx = -2;
-						agent2.vy = 0;
+					if(robot.position.x - robot.width/2 > 0 ){
+						//robot.position.x -= 2;
+						robot.vx = -2;
+						robot.vy = 0;
 					}
 				}
 				//d
 				if(key.keyCode === 68){
-					if(agent2.position.x + agent2.width/2 < pixiRenderer.width){
-						//agent2.position.x += 2;
-						agent2.vx = 2;
-						agent2.vy = 0;
-						console.log(agent2.vx);
+					if(robot.position.x + robot.width/2 < pixiRenderer.width){
+						//robot.position.x += 2;
+						robot.vx = 2;
+						robot.vy = 0;
 					}
 				}
 				//w
 				if(key.keyCode === 87){
-					if(agent2.position.y - agent2.height/2 > 0){
-						agent2.vy = -2;
-						agent2.vx = 0;
+					if(robot.position.y - robot.height/2 > 0){
+						robot.vy = -2;
+						robot.vx = 0;
 					}
 				}
 				//s
 				if(key.keyCode === 83){
-					if(agent2.position.y + agent2.height/2 < pixiRenderer.height){
-						agent2.vy = 2;
-						agent2.vx = 0;
-						console.log(agent2.vy);
+					if(robot.position.y + robot.height/2 < pixiRenderer.height){
+						robot.vy = 2;
+						robot.vx = 0;
 					}
 				}
 			}
 
 			function keyUp(key){
 				if(key.keyCode === 87 || key.keyCode === 83){
-					agent2.vy = 0;
+					robot.vy = 0;
 				}
 				if(key.Code === 68 || key.keyCode === 65){
-					agent2.vx = 0;
+					robot.vx = 0;
 				}
 
+			}
+
+			function mousedown(e){
+				var data = pixiRenderer.plugins.interaction.mouse.global;
+				spawnBullets(data);
+
+			}
+
+			function spawnBullets(data){
+				//var bunnyChangeX = data.x - pixiBunny.position.x;
+				//var bunnyChangeY = data.y - pixiBunny.position.y;
+
+				bullet.visible = true;
+				var bulletChangeX = data.x - bullet.position.x;
+				var bulletChangeY = data.y - bullet.position.y;
+
+				bullet.vx = bulletChangeX/60;
+				bullet.vy = bulletChangeY/60;
+
+				console.log(bulletChangeX, bulletChangeY);
 			}
 
 			function checkForCollisions(obj1, obj2){
@@ -151,6 +198,9 @@
 				if(distX < (obj1.width/2 + obj2.width/2)){
 					if(distY < (obj1.height/2 + obj2.height/2)){
 						collision = true;
+						obj2.position.y = -100;
+						pixiStage.removeChild(obj2);
+
 					}
 					else{
 						collision = false;
@@ -182,7 +232,7 @@
 				bg = new PIXI.extras.TilingSprite(PIXI.loader.resources["resources/bg-mid.png"].texture, 1240, 512);
 
 				bg.position.x = 0;
-				bg.position.y = pixiRenderer.height/2;
+				bg.position.y = (pixiRenderer.height/2) - 35;
 				bg.tilePosition.x = 0;
 				bg.tilePosition.y = 0;
 				//midBackground.tilePosition.y = pixiRenderer.height * 0.65;
@@ -201,24 +251,33 @@
 
 				pixiBunny = new PIXI.Sprite(PIXI.Texture.fromImage('http://mercury.cs.pdx.edu/bunny.png'));
 				pixiBunny.position.x = Math.random() * 800.0;
-				pixiBunny.position.y = Math.random() * 600.0;
+				//pixiBunny.position.y = Math.random() * 600.0;
+				pixiBunny.position.y = 450;
 				pixiBunny.anchor.x = 0.5;
 				pixiBunny.anchor.y = 0.5;
 
 				var rec2 = new PIXI.Rectangle(12, 5, 25, 42);
 				agent.frame = rec2;
-				agent2 = new PIXI.Sprite(agent)
+				robot = new PIXI.Sprite(agent)
 
 				test.position.x = 100;
 				test.position.y = 100;
 
-				agent2.position.x = 200;
-				agent2.position.y = 200;
-				agent2.anchor.x = 0.5;
-				agent2.anchor.y = 0.5;
+				robot.position.x = 200;
+				robot.position.y = 200;
+				robot.anchor.x = 0.5;
+				robot.anchor.y = 0.5;
 
-				agent2.vx = 0;
-				agent2.vy = 0;
+				robot.vx = 0;
+				robot.vy = 0;
+
+				bullet = new PIXI.Sprite(PIXI.Texture.fromImage('resources/bullet.png'));
+
+				bullet.position.x = anim1.position.x;
+				bullet.position.y = anim1.position.y;
+				bullet.scale.set(0.2);
+				bullet.visible = false;
+				//pixiStage.addChild(bullet);
 			}
 
 			function initPath(){
@@ -226,117 +285,117 @@
 				var pathPieces = [];
 				var pathPiece = PIXI.Sprite.fromFrame("decoration_03");
   			pathPiece.position.x = -63;
-  			pathPiece.position.y = 64;
+  			pathPiece.position.y = pixiRenderer.height - 135;
 				pathPieces.push(pathPiece);
 
 				var pathPiece1 = PIXI.Sprite.fromFrame("decoration_03");
   			pathPiece1.position.x = 0;
-  			pathPiece1.position.y = 64;
+  			pathPiece1.position.y = pixiRenderer.height - 135;
 				pathPieces.push(pathPiece1);
 
 				var pathPiece2 = PIXI.Sprite.fromFrame("window_01");
   			pathPiece2.position.x = 63;
-  			pathPiece2.position.y = 64;
+  			pathPiece2.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece2);
 
 				var pathPiece3 = PIXI.Sprite.fromFrame("decoration_02");
   			pathPiece3.position.x = 126;
-  			pathPiece3.position.y = 64;
+  			pathPiece3.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece3);
 
 				var pathPiece4 = PIXI.Sprite.fromFrame("decoration_03");
   			pathPiece4.position.x = 189;
-  			pathPiece4.position.y = 64;
+  			pathPiece4.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece4);
 
 				var pathPiece5 = PIXI.Sprite.fromFrame("decoration_01");
   			pathPiece5.position.x = 252;
-  			pathPiece5.position.y = 64;
+  			pathPiece5.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece5);
 
 				var pathPiece6 = PIXI.Sprite.fromFrame("window_01");
   			pathPiece6.position.x = 315;
-  			pathPiece6.position.y = 64;
+  			pathPiece6.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece6);
 
 				var pathPiece7 = PIXI.Sprite.fromFrame("window_02");
   			pathPiece7.position.x = 378;
-  			pathPiece7.position.y = 64;
+  			pathPiece7.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece7);
 
 				var pathPiece8 = PIXI.Sprite.fromFrame("decoration_03");
   			pathPiece8.position.x = 441;
-  			pathPiece8.position.y = 64;
+  			pathPiece8.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece8);
 
 				var pathPiece9 = PIXI.Sprite.fromFrame("decoration_01");
   			pathPiece9.position.x = 504;
-  			pathPiece9.position.y = 64;
+  			pathPiece9.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece9);
 
 				var pathPiece10 = PIXI.Sprite.fromFrame("window_02");
   			pathPiece10.position.x = 567;
-  			pathPiece10.position.y = 64;
+  			pathPiece10.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece10);
 
 				var pathPiece11 = PIXI.Sprite.fromFrame("decoration_03");
   			pathPiece11.position.x = 630;
-  			pathPiece11.position.y = 64;
+  			pathPiece11.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece11);
 
 				var pathPiece12 = PIXI.Sprite.fromFrame("decoration_02");
   			pathPiece12.position.x = 693;
-  			pathPiece12.position.y = 64;
+  			pathPiece12.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece12);
 
 				var pathPiece13 = PIXI.Sprite.fromFrame("window_01");
   			pathPiece13.position.x = 756;
-  			pathPiece13.position.y = 64;
+  			pathPiece13.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece13);
 
 				var pathPiece14 = PIXI.Sprite.fromFrame("window_02");
   			pathPiece14.position.x = 819;
-  			pathPiece14.position.y = 64;
+  			pathPiece14.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece14);
 
 				var pathPiece15 = PIXI.Sprite.fromFrame("decoration_01");
   			pathPiece15.position.x = 882;
-  			pathPiece15.position.y = 64;
+  			pathPiece15.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece15);
 
 				var pathPiece16 = PIXI.Sprite.fromFrame("decoration_01");
   			pathPiece16.position.x = 945;
-  			pathPiece16.position.y = 64;
+  			pathPiece16.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece16);
 
 				var pathPiece17 = PIXI.Sprite.fromFrame("decoration_03");
   			pathPiece17.position.x = 1008;
-  			pathPiece17.position.y = 64;
+  			pathPiece17.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece17);
 
 				var pathPiece18 = PIXI.Sprite.fromFrame("window_01");
   			pathPiece18.position.x = 1071;
-  			pathPiece18.position.y = 64;
+  			pathPiece18.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece18);
 
 				var pathPiece19 = PIXI.Sprite.fromFrame("decoration_02");
   			pathPiece19.position.x = 1134;
-  			pathPiece19.position.y = 64;
+  			pathPiece19.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece19);
 
 				var pathPiece20 = PIXI.Sprite.fromFrame("window_02");
   			pathPiece20.position.x = 1197;
-  			pathPiece20.position.y = 64;
+  			pathPiece20.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece20);
 
 				var pathPiece21 = PIXI.Sprite.fromFrame("decoration_01");
   			pathPiece21.position.x = 1260;
-  			pathPiece21.position.y = 64;
+  			pathPiece21.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece21);
 
 				var pathPiece22 = PIXI.Sprite.fromFrame("decoration_01");
   			pathPiece22.position.x = 1323;
-  			pathPiece22.position.y = 64;
+  			pathPiece22.position.y = pixiRenderer.height - 135;;
 				pathPieces.push(pathPiece22);
 
 				return pathPieces;
@@ -353,6 +412,53 @@
 
 					}
 				}
+			}
+
+			/*function displayGameScore(score){
+				gameScore += toString(score);
+			}*/
+			function updateGameScore(){
+				gameScore += 10;
+				displayScore.text = 'Score: ' + gameScore;
+				//console.log(gameScore);
+			}
+
+			function animateIdleInit(){
+				var textureArray = ['Idle (1).png', 'Idle (2).png', 'Idle (3).png', 'Idle (4).png', 'Idle (5).png', 'Idle (6).png', 'Idle (7).png', 'Idle (8).png', 'Idle (9).png', 'Idle (10).png'];
+				var mc = PIXI.extras.MovieClip.fromFrames(textureArray);
+				mc.scale.set(0.20);
+				mc.position.x = 300;
+				mc.position.y = 100;
+				//mc.play();
+				pixiStage.addChild(mc);
+				return mc;
+			}
+
+			function animateRunInit(){
+				var textureArray = ['Run (1).png', 'Run (2).png', 'Run (3).png', 'Run (4).png', 'Run (5).png', 'Run (6).png', 'Run (7).png', 'Run (8).png'];
+				var mc = PIXI.extras.MovieClip.fromFrames(textureArray);
+				mc.scale.set(0.20);
+				mc.position.x = 300;
+				mc.position.y = 445;
+				//mc.loop.set(false);
+				//mc.play();
+				pixiStage.addChild(mc);
+				return mc;
+			}
+
+			function animateRun(clip){
+				clip.animationSpeed = (0.25);
+				clip.play(1);
+
+			}
+
+			function animateIdle(clip){
+				clip.animationSpeed = (0.25);
+				clip.gotoAndPlay(1);
+			}
+
+			function stopRun(clip){
+				clip.gotoAndStop(1);
 			}
 
 
