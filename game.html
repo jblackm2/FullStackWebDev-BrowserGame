@@ -26,6 +26,8 @@
 			var anim1;
 			var anim2;
 			var bullet;
+			var bunnArray;
+			var bulletArray = [];
 
 			PIXI.loader
 				.add("resources/agent.png")
@@ -64,17 +66,7 @@
 
 				initMinions();
 
-				pixiStage.addChild(robot);
-
 				pixiStage.addChild(displayScore);
-
-				pixiStage.addChild(pixiBunny);
-
-				pixiStage.addChild(bullet);
-
-
-
-
 
 				document.addEventListener('keydown', keyDown);
 				document.addEventListener('keyup', keyUp);
@@ -95,17 +87,24 @@
 			};
 
 			function play(){
-				//bullet.position.x += bullet.vx;
-				//bullet.position.y += bullet.vy;
+				bullet = bulletArray[0];
+				bullet.position.x += bullet.vx;
+				bullet.position.y += bullet.vy;
+
+				checkBulletPositions();
+
 				if(robot.vx != 0 || robot.vy != 0){
 					shiftPath();
 					robot.position.x += robot.vx;
 					robot.position.y += robot.vy;
 
-
-
 					farBackground.tilePosition.x -= 0.256;
 					midBackground.tilePosition.x -= 0.512;
+
+					for(var i = 0; i < bunnyArray.length; i += 1){
+						bunnyArray[i].position.x -= 0.6;
+					}
+
 					animateRun(anim1);
 				}
 				else{
@@ -113,9 +112,8 @@
 					stopRun(anim1);
 				}
 
-				if (checkForCollisions(robot, pixiBunny)){
-					updateGameScore();
-				}
+				checkForCollisions(bullet, bunnyArray);
+
 			}
 
 			function keyDown(key){
@@ -164,13 +162,15 @@
 			function mousedown(e){
 				var data = pixiRenderer.plugins.interaction.mouse.global;
 				spawnBullets(data);
+				console.log("bullets: " + bulletArray.length);
 
 			}
 
 			function spawnBullets(data){
 				//var bunnyChangeX = data.x - pixiBunny.position.x;
 				//var bunnyChangeY = data.y - pixiBunny.position.y;
-
+				//TODO add another array for flying bullets, so multiple can be in the air at once
+				bullet = bulletArray.pop();
 				bullet.visible = true;
 				var bulletChangeX = data.x - bullet.position.x;
 				var bulletChangeY = data.y - bullet.position.y;
@@ -181,35 +181,53 @@
 				console.log(bulletChangeX, bulletChangeY);
 			}
 
-			function checkForCollisions(obj1, obj2){
-				var collision = false;
+			function checkForCollisions(obj1, obj2Array){
+
 
 				//Calculate the center of all objects
 				obj1.xCenter = obj1.position.x + (obj1.width/2);
 				obj1.yCenter = obj1.position.y + (obj1.height/2);
-				obj2.xCenter = obj2.position.x + (obj2.width/2);
-				obj2.yCenter = obj2.position.y + (obj2.height/2);
 
-				//Distance between the objects
-				var distX = Math.abs(obj1.xCenter - obj2.xCenter);
-				var distY = Math.abs(obj1.yCenter - obj2.yCenter);
-				//console.log("x " + distX + " y " + distY);
+				for(var i = 0; i < obj2Array.length; i += 1){
+					obj2Array[i].xCenter = obj2Array[i].position.x + (obj2Array[i].width/2);
+					obj2Array[i].yCenter = obj2Array[i].position.y + (obj2Array[i].height/2);
 
-				if(distX < (obj1.width/2 + obj2.width/2)){
-					if(distY < (obj1.height/2 + obj2.height/2)){
-						collision = true;
-						obj2.position.y = -100;
-						pixiStage.removeChild(obj2);
+					//Distance between the objects
+					var distX = Math.abs(obj1.xCenter - obj2Array[i].xCenter);
+					var distY = Math.abs(obj1.yCenter - obj2Array[i].yCenter);
+					//console.log("x " + distX + " y " + distY);
+
+					if(distX < (obj1.width/2 + obj2Array[i].width/2)){
+						if(distY < (obj1.height/2 + obj2Array[i].height/2)){
+							updateGameScore();
+							obj2Array[i].position.y = -100;
+							pixiStage.removeChild(obj2Array[i]);
+							bulletReload(obj1);
+
+						}
 
 					}
-					else{
-						collision = false;
+
+				}
+
+			}
+
+			function bulletReload(ammo){
+				ammo.position.x = anim1.position.x;
+				ammo.position.y = anim1.position.y;
+				ammo.vx = 0;
+				ammo.vy = 0;
+				ammo.visible = false;
+
+				bulletArray.push(ammo);
+			}
+
+			function checkBulletPositions(){
+				for(var i = 0; i < bulletArray.length; i += 1){
+					if(bulletArray[i].position.x < 0 || bulletArray[i].position.x > pixiRenderer.width || bulletArray[i].position.y < 0 || bulletArray[i].position.y > pixiRenderer.height){
+						bulletReload(bulletArray[i]);
 					}
 				}
-				else{
-					collision = false;
-				}
-				return collision;
 			}
 
 			function initFarBackground(){
@@ -243,25 +261,26 @@
 
 			function initMinions(){
 				agent = PIXI.utils.TextureCache["resources/agent.png"];
-				var tilesheet = PIXI.utils.TextureCache["resources/tilesheet.png"];
 
-				var rec = new PIXI.Rectangle(269, 0, 20, 20);
-				tilesheet.frame = rec;
-				test = new PIXI.Sprite(tilesheet);
+				bunnyArray = [];
 
-				pixiBunny = new PIXI.Sprite(PIXI.Texture.fromImage('http://mercury.cs.pdx.edu/bunny.png'));
-				pixiBunny.position.x = Math.random() * 800.0;
-				//pixiBunny.position.y = Math.random() * 600.0;
-				pixiBunny.position.y = 450;
-				pixiBunny.anchor.x = 0.5;
-				pixiBunny.anchor.y = 0.5;
+				for(var i = 0; i< 20; i+=1){
+					pixiBunny = new PIXI.Sprite(PIXI.Texture.fromImage('http://mercury.cs.pdx.edu/bunny.png'));
+					pixiBunny.position.x = Math.random() * pixiRenderer.width;
+					pixiBunny.position.y = Math.random() * pixiRenderer.height/4;
+					//pixiBunny.position.y = 450;
+					pixiBunny.anchor.x = 0.5;
+					pixiBunny.anchor.y = 0.5;
+
+					pixiStage.addChild(pixiBunny);
+
+					bunnyArray.push(pixiBunny);
+
+				}
 
 				var rec2 = new PIXI.Rectangle(12, 5, 25, 42);
 				agent.frame = rec2;
-				robot = new PIXI.Sprite(agent)
-
-				test.position.x = 100;
-				test.position.y = 100;
+				robot = new PIXI.Sprite(agent);
 
 				robot.position.x = 200;
 				robot.position.y = 200;
@@ -273,11 +292,20 @@
 
 				bullet = new PIXI.Sprite(PIXI.Texture.fromImage('resources/bullet.png'));
 
-				bullet.position.x = anim1.position.x;
-				bullet.position.y = anim1.position.y;
-				bullet.scale.set(0.2);
-				bullet.visible = false;
-				//pixiStage.addChild(bullet);
+				for(var i = 0; i < 20; i += 1){
+					bullet.position.x = anim1.position.x;
+					bullet.position.y = anim1.position.y;
+					bullet.vx = 0;
+					bullet.vy = 0;
+					bullet.scale.set(0.2);
+					bullet.visible = false;
+					pixiStage.addChild(bullet);
+					bulletArray.push(bullet);
+				}
+
+
+				pixiStage.addChild(robot);
+
 			}
 
 			function initPath(){
