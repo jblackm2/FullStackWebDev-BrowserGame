@@ -38,14 +38,16 @@
 						<button id="submit"class="btn btn-primary">submit</button>
 					</div>
 				</div>
-				<h1>this is a header</h1>
-				<p>this is a paragraph with some text.</p>
+				<div id="redirect" class="collapse">
+					<button id="goToGame"class="btn btn-primary">Go to the game</button>
+				</div>
 			</div>
 
 	</body>
 	<script type="text/javascript">
 	var newFlag = false;
 	var loginFlag = false;
+	var name;
 	jQuery('#newUser').on('click', function(){
 		newFlag = true;
 		loginFlag = false;
@@ -53,9 +55,22 @@
 	jQuery('#login').on('click', function(){
 		newFlag = false;
 		loginFlag = true;
-	})
+	});
+	jQuery('#goToGame').on('click', function(){
+		jQuery.ajax({
+			'type':'GET',
+			'url': '/goToGame?username=' + name,
+			'dataType': 'text',
+			'success': function(data){
+				jQuery('#redirect').toggle();
+			},
+			'error': function(data){
+				jQuery('#loginAlert').toggle().append(data.responseText);
+			}
+		});
+	});
 	jQuery('#submit').on('click', function(){
-		var name = jQuery('#Username').val();
+		name = jQuery('#Username').val();
 		var pass = jQuery('#Password').val();
 		if(name === "" || pass === ""){
 			jQuery('#loginAlert').toggle().append("Need both user name and password");
@@ -66,9 +81,11 @@
 					'type':'GET',
 					'url': '/newUser?username=' + name + '&password=' + pass,
 					'dataType': 'text',
-					'success': function(data){console.log("success"); },
+					'success': function(data){
+						jQuery('#redirect').toggle();
+					},
 					'error': function(data){
-						jQuery('#LoginAlert').toggle().append(data.responseText);
+						jQuery('#loginAlert').toggle().append(data.responseText);
 					}
 				});
 			}
@@ -77,9 +94,11 @@
 					'type':'GET',
 					'url': '/login?username=' + name + '&password=' + pass,
 					'dataType': 'text',
-					'success': function(data){console.log("Hi"); },
+					'success': function(data){
+						jQuery('#redirect').toggle();
+					},
 					'error': function(data){
-						jQuery('#LoginAlert').toggle().append(data.responseText);
+						jQuery('#loginAlert').toggle().append(data.responseText);
 					}
 				});
 			}
