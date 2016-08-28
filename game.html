@@ -10,7 +10,10 @@
 			'view': document.getElementById('example'), 'backgroundColor': 0x1099BB
 			});
 
-			var pixiStage = new PIXI.Container();
+			var stage = new PIXI.Container();
+			var pixiGameStage = new PIXI.Container();
+			var pixiStartStage = new PIXI.Container();
+			var pixiEndStage = new PIXI.Container();
 
 			var agent;
 			var robot;
@@ -25,9 +28,14 @@
 			var displayScore;
 			var anim1;
 			var anim2;
-			var bullet;
+			//var bullet;
 			var bunnArray;
 			var bulletArray = [];
+			var flyingBullets = [];
+			var startMessage;
+			var highScore;
+			var startButton;
+			var deadBunnyCount = 0;
 
 			PIXI.loader
 				.add("resources/agent.png")
@@ -40,25 +48,47 @@
 				.add('resources/bullet.png')
 				.load(setup);
 			function setup(){
-				/*var agent = new PIXI.Sprite(
-					PIXI.loader.resources["agent.png"].texture
-				);*/
-				/*var tilesheet = new PIXI.Sprite(
-					PIXI.loader.resources["tilesheet.png"].texture
-				);*/
+
+
+				stage.addChild(pixiStartStage);
+				stage.addChild(pixiGameStage);
+				stage.addChild(pixiEndStage);
+
+				pixiStartStage.visible = true;
+				pixiGameStage.visible = false;
+				pixiEndStage.visible = false;
+
+				startMessage = new PIXI.Text('Start Game');
+				startMessage.position.x = pixiRenderer.width/2;
+				startMessage.position.y = pixiRenderer.height/2;
+				pixiStartStage.addChild(startMessage);
+				startButton = PIXI.Sprite.fromFrame('Idle (1).png');
+				startButton.position.x = 100;
+				startButton.position.y = 100;
+				startButton.interactive = true;
+				startButton.on('mousedown', startGame);
+				pixiStartStage.addChild(startButton);
+
+				highScore = new PIXI.Text('High Score: ');
+				highScore.position.x = 10;
+				highScore.position.y = 10;
+				pixiStartStage.addChild(highScore);
+
+
 
 				farBackground = initFarBackground();
 				midBackground = initMidBackground();
+
 				path = initPath();
 				displayScore = new PIXI.Text('Score: ' + gameScore);
 				displayScore.position.x = 10;
 				displayScore.position.y = 10;
 
-				pixiStage.addChild(farBackground);
-				pixiStage.addChild(midBackground);
+				pixiGameStage.addChild(farBackground);
+				pixiGameStage.addChild(midBackground);
 
 				for(var i = 0; i < path.length; i += 1){
-					pixiStage.addChild(path[i]);
+					pixiGameStage.addChild(path[i]);
 				}
 
 				anim1 = animateRunInit();
@@ -66,7 +96,7 @@
 
 				initMinions();
 
-				pixiStage.addChild(displayScore);
+				pixiGameStage.addChild(displayScore);
 
 				document.addEventListener('keydown', keyDown);
 				document.addEventListener('keyup', keyUp);
@@ -81,16 +111,15 @@
 
 				state();
 
-				pixiRenderer.render(pixiStage);
+				//pixiRenderer.render(pixiGameStage);
+				pixiRenderer.render(stage);
 				requestAnimationFrame(functionGameloop);
 
 			};
 
 			function play(){
-				bullet = bulletArray[0];
-				bullet.position.x += bullet.vx;
-				bullet.position.y += bullet.vy;
-
+				deadBunnyCount = 0;
+				moveBullets();
 				checkBulletPositions();
 
 				if(robot.vx != 0 || robot.vy != 0){
@@ -103,6 +132,12 @@
 
 					for(var i = 0; i < bunnyArray.length; i += 1){
 						bunnyArray[i].position.x -= 0.6;
+						if(bunnyArray[i].position.x < 0 || bunnyArray[i].position.y < 0){
+							deadBunnyCount += 1;
+						}
+					}
+					if(deadBunnyCount >= 20){
+						endGame();
 					}
 
 					animateRun(anim1);
@@ -111,9 +146,6 @@
 					//animateIdle(anim2);
 					stopRun(anim1);
 				}
-
-				checkForCollisions(bullet, bunnyArray);
-
 			}
 
 			function keyDown(key){
@@ -133,44 +165,38 @@
 						robot.vy = 0;
 					}
 				}
-				//w
-				if(key.keyCode === 87){
-					if(robot.position.y - robot.height/2 > 0){
-						robot.vy = -2;
-						robot.vx = 0;
-					}
-				}
-				//s
-				if(key.keyCode === 83){
-					if(robot.position.y + robot.height/2 < pixiRenderer.height){
-						robot.vy = 2;
-						robot.vx = 0;
-					}
-				}
 			}
 
 			function keyUp(key){
-				if(key.keyCode === 87 || key.keyCode === 83){
-					robot.vy = 0;
-				}
-				if(key.Code === 68 || key.keyCode === 65){
+				if(key.keyCode === 68 || key.keyCode === 65){
 					robot.vx = 0;
 				}
-
 			}
 
 			function mousedown(e){
 				var data = pixiRenderer.plugins.interaction.mouse.global;
 				spawnBullets(data);
-				console.log("bullets: " + bulletArray.length);
+			}
 
+			function startGame(){
+				pixiStartStage.visible = false;
+				pixiGameStage.visible = true;
+			}
+
+			function endGame(){
+				endMessage = new PIXI.Text('Game Over!\nYour score of ' + gameScore + ' has been submitted.');
+				endMessage.position.x = pixiRenderer.width/2;
+				endMessage.position.y = pixiRenderer.height/2;
+				pixiEndStage.addChild(endMessage);
+				pixiEndStage.visible = true;
+				pixiGameStage.visible = false;
 			}
 
 			function spawnBullets(data){
 				//var bunnyChangeX = data.x - pixiBunny.position.x;
 				//var bunnyChangeY = data.y - pixiBunny.position.y;
-				//TODO add another array for flying bullets, so multiple can be in the air at once
-				bullet = bulletArray.pop();
+
+				var bullet = bulletArray.shift();
 				bullet.visible = true;
 				var bulletChangeX = data.x - bullet.position.x;
 				var bulletChangeY = data.y - bullet.position.y;
@@ -178,12 +204,12 @@
 				bullet.vx = bulletChangeX/60;
 				bullet.vy = bulletChangeY/60;
 
-				console.log(bulletChangeX, bulletChangeY);
+				flyingBullets.push(bullet);
+
+				console.log(flyingBullets[flyingBullets.length -1]);
 			}
 
 			function checkForCollisions(obj1, obj2Array){
-
-
 				//Calculate the center of all objects
 				obj1.xCenter = obj1.position.x + (obj1.width/2);
 				obj1.yCenter = obj1.position.y + (obj1.height/2);
@@ -201,18 +227,20 @@
 						if(distY < (obj1.height/2 + obj2Array[i].height/2)){
 							updateGameScore();
 							obj2Array[i].position.y = -100;
-							pixiStage.removeChild(obj2Array[i]);
-							bulletReload(obj1);
+							obj2Array[i].visible = false;
+							pixiGameStage.removeChild(obj2Array[i]);
+							var temp = flyingBullets.splice(flyingBullets.indexOf(obj1), 1);
+							bulletReload(temp[0]);
 
 						}
-
 					}
-
 				}
-
 			}
 
 			function bulletReload(ammo){
+
+				console.log(flyingBullets.length);
+				console.log(flyingBullets.indexOf(ammo));
 				ammo.position.x = anim1.position.x;
 				ammo.position.y = anim1.position.y;
 				ammo.vx = 0;
@@ -220,13 +248,25 @@
 				ammo.visible = false;
 
 				bulletArray.push(ammo);
+				console.log(bulletArray.length);
 			}
 
 			function checkBulletPositions(){
-				for(var i = 0; i < bulletArray.length; i += 1){
-					if(bulletArray[i].position.x < 0 || bulletArray[i].position.x > pixiRenderer.width || bulletArray[i].position.y < 0 || bulletArray[i].position.y > pixiRenderer.height){
-						bulletReload(bulletArray[i]);
+				for(var i = 0; i < flyingBullets.length; i += 1){
+					if(flyingBullets[i].position.x < 0 || flyingBullets[i].position.x > pixiRenderer.width || flyingBullets[i].position.y < 0 || flyingBullets[i].position.y > pixiRenderer.height){
+						var temp = flyingBullets.splice(i,1);
+						bulletReload(temp[0]);
 					}
+				}
+			}
+
+			function moveBullets(){
+				for(var i = 0; i < flyingBullets.length; i += 1){
+					var bullet = flyingBullets[i];
+					checkForCollisions(bullet, bunnyArray);
+
+					bullet.position.x += bullet.vx;
+					bullet.position.y += bullet.vy;
 				}
 			}
 
@@ -272,7 +312,7 @@
 					pixiBunny.anchor.x = 0.5;
 					pixiBunny.anchor.y = 0.5;
 
-					pixiStage.addChild(pixiBunny);
+					pixiGameStage.addChild(pixiBunny);
 
 					bunnyArray.push(pixiBunny);
 
@@ -290,21 +330,22 @@
 				robot.vx = 0;
 				robot.vy = 0;
 
-				bullet = new PIXI.Sprite(PIXI.Texture.fromImage('resources/bullet.png'));
 
 				for(var i = 0; i < 20; i += 1){
-					bullet.position.x = anim1.position.x;
+					var bullet = new PIXI.Sprite(PIXI.Texture.fromImage('resources/bullet.png'));
+
+					bullet.position.x = anim1.position.x + anim1.width;
 					bullet.position.y = anim1.position.y;
 					bullet.vx = 0;
 					bullet.vy = 0;
 					bullet.scale.set(0.2);
 					bullet.visible = false;
-					pixiStage.addChild(bullet);
+					pixiGameStage.addChild(bullet);
 					bulletArray.push(bullet);
 				}
 
 
-				pixiStage.addChild(robot);
+				pixiGameStage.addChild(robot);
 
 			}
 
@@ -458,7 +499,7 @@
 				mc.position.x = 300;
 				mc.position.y = 100;
 				//mc.play();
-				pixiStage.addChild(mc);
+				pixiGameStage.addChild(mc);
 				return mc;
 			}
 
@@ -470,7 +511,7 @@
 				mc.position.y = 445;
 				//mc.loop.set(false);
 				//mc.play();
-				pixiStage.addChild(mc);
+				pixiGameStage.addChild(mc);
 				return mc;
 			}
 
