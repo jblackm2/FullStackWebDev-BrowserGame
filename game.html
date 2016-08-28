@@ -181,6 +181,13 @@
 			function startGame(){
 				pixiStartStage.visible = false;
 				pixiGameStage.visible = true;
+				jQuery.ajax({
+					'type':'GET',
+					'url': '/getMaxScore?username=' + name,
+					'dataType': 'text',
+					'success': function(data){highScore.text('High Score: ' + data); },
+					'error': function(data){console.log("Failure");}
+				});
 			}
 
 			function endGame(){
@@ -190,6 +197,14 @@
 				pixiEndStage.addChild(endMessage);
 				pixiEndStage.visible = true;
 				pixiGameStage.visible = false;
+
+				jQuery.ajax({
+					'type':'GET',
+					'url': '/addScore?username=' + name + '&score=' + gameScore,
+					'dataType': 'text',
+					'success': function(data){console.log("success"); },
+					'error': function(data){console.log("failure");}
+				});
 			}
 
 			function spawnBullets(data){
