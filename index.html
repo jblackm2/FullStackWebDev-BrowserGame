@@ -57,17 +57,18 @@
 		loginFlag = true;
 	});
 	jQuery('#goToGame').on('click', function(){
-		jQuery.ajax({
+		/*jQuery.ajax({
 			'type':'GET',
 			'url': '/goToGame?username=' + name,
-			'dataType': 'text',
+			'dataType': 'html',
 			'success': function(data){
-				jQuery('#redirect').toggle();
+				.html(data);
 			},
 			'error': function(data){
 				jQuery('#loginAlert').toggle().append(data.responseText);
 			}
-		});
+		});*/
+		window.location.replace("game.html?username=" + name);
 	});
 	jQuery('#submit').on('click', function(){
 		name = jQuery('#Username').val();
