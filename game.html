@@ -2,6 +2,8 @@
 <html>
 	<head>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/3.0.11/pixi.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
 	</head>
 	<body>
 		<canvas id="example"></canvas>
@@ -15,7 +17,6 @@
 			var pixiStartStage = new PIXI.Container();
 			var pixiEndStage = new PIXI.Container();
 
-			var agent;
 			var robot;
 			var test;
 			var state;
@@ -36,9 +37,10 @@
 			var highScore;
 			var startButton;
 			var deadBunnyCount = 0;
+			var username;
+			var successFlag = false;
 
 			PIXI.loader
-				.add("resources/agent.png")
 				.add("resources/tilesheet.png")
 				.add("resources/bg-far.png")
 				.add("resources/bg-mid.png")
@@ -49,7 +51,10 @@
 				.load(setup);
 			function setup(){
 
-
+				var query = window.location.search;
+				var temp = query.split('=');
+				username = temp[1];
+				console.log(username);
 				stage.addChild(pixiStartStage);
 				stage.addChild(pixiGameStage);
 				stage.addChild(pixiEndStage);
@@ -62,17 +67,20 @@
 				startMessage.position.x = pixiRenderer.width/2;
 				startMessage.position.y = pixiRenderer.height/2;
 				pixiStartStage.addChild(startMessage);
-				startButton = PIXI.Sprite.fromFrame('Idle (1).png');
-				startButton.position.x = 100;
-				startButton.position.y = 100;
-				startButton.interactive = true;
-				startButton.on('mousedown', startGame);
-				pixiStartStage.addChild(startButton);
 
 				highScore = new PIXI.Text('High Score: ');
 				highScore.position.x = 10;
 				highScore.position.y = 10;
 				pixiStartStage.addChild(highScore);
+
+				startButton = PIXI.Sprite.fromFrame('Idle (1).png');
+				startButton.position.x = 100;
+				startButton.position.y = 100;
+				startButton.interactive = true;
+				startButton.on('mouseover', startGame);
+				pixiStartStage.addChild(startButton);
+
+
 
 
 
@@ -99,9 +107,18 @@
 				pixiGameStage.addChild(displayScore);
 
 				document.addEventListener('keydown', keyDown);
-				document.addEventListener('keyup', keyUp);
+				//document.addEventListener('keyup', keyUp);
 				document.addEventListener('mousedown', mousedown);
 
+				jQuery.ajax({
+					'type':'GET',
+					'url': '/getMaxScore?username=' + username,
+					'dataType': 'json',
+					'success': function(data){
+						highScore.text = 'High Score: ' + data[0].score;},
+					//console.log(data[0].score)},
+					'error': function(data){console.log("Failure");}
+				});
 				state = play;
 
 				functionGameloop();
@@ -122,6 +139,8 @@
 				moveBullets();
 				checkBulletPositions();
 
+
+
 				if(robot.vx != 0 || robot.vy != 0){
 					shiftPath();
 					robot.position.x += robot.vx;
@@ -135,10 +154,11 @@
 						if(bunnyArray[i].position.x < 0 || bunnyArray[i].position.y < 0){
 							deadBunnyCount += 1;
 						}
+						if(deadBunnyCount >= 20){
+							endGame();
+						}
 					}
-					if(deadBunnyCount >= 20){
-						endGame();
-					}
+
 
 					animateRun(anim1);
 				}
@@ -146,24 +166,25 @@
 					//animateIdle(anim2);
 					stopRun(anim1);
 				}
+
 			}
 
 			function keyDown(key){
 				//a
 				if(key.keyCode === 65){
-					if(robot.position.x - robot.width/2 > 0 ){
+					//if(robot.position.x - robot.width/2 > 0 ){
 						//robot.position.x -= 2;
 						robot.vx = -2;
 						robot.vy = 0;
-					}
+					//}
 				}
 				//d
 				if(key.keyCode === 68){
-					if(robot.position.x + robot.width/2 < pixiRenderer.width){
+					//if(robot.position.x + robot.width/2 < pixiRenderer.width){
 						//robot.position.x += 2;
 						robot.vx = 2;
 						robot.vy = 0;
-					}
+					//}
 				}
 			}
 
@@ -181,30 +202,27 @@
 			function startGame(){
 				pixiStartStage.visible = false;
 				pixiGameStage.visible = true;
-				jQuery.ajax({
-					'type':'GET',
-					'url': '/getMaxScore?username=' + name,
-					'dataType': 'text',
-					'success': function(data){highScore.text('High Score: ' + data); },
-					'error': function(data){console.log("Failure");}
-				});
+
 			}
 
 			function endGame(){
-				endMessage = new PIXI.Text('Game Over!\nYour score of ' + gameScore + ' has been submitted.');
-				endMessage.position.x = pixiRenderer.width/2;
-				endMessage.position.y = pixiRenderer.height/2;
-				pixiEndStage.addChild(endMessage);
-				pixiEndStage.visible = true;
-				pixiGameStage.visible = false;
+				if(successFlag === false){
+					endMessage = new PIXI.Text('Game Over!\nYour score of ' + gameScore + ' has been submitted.');
+					endMessage.position.x = pixiRenderer.width/2;
+					endMessage.position.y = pixiRenderer.height/2;
+					pixiEndStage.addChild(endMessage);
+					pixiEndStage.visible = true;
+					pixiGameStage.visible = false;
+					stage.removeChild(pixiGameStage);
 
-				jQuery.ajax({
-					'type':'GET',
-					'url': '/addScore?username=' + name + '&score=' + gameScore,
-					'dataType': 'text',
-					'success': function(data){console.log("success"); },
-					'error': function(data){console.log("failure");}
-				});
+					jQuery.ajax({
+						'type':'GET',
+						'url': '/addScore?username=' + username + '&score=' + gameScore,
+						'dataType': 'text',
+						'success': function(data){successFlag = true; },
+						'error': function(data){console.log("failure");}
+					});
+				}
 			}
 
 			function spawnBullets(data){
@@ -220,8 +238,6 @@
 				bullet.vy = bulletChangeY/60;
 
 				flyingBullets.push(bullet);
-
-				console.log(flyingBullets[flyingBullets.length -1]);
 			}
 
 			function checkForCollisions(obj1, obj2Array){
@@ -253,17 +269,18 @@
 			}
 
 			function bulletReload(ammo){
+				//console.log("bullet array: " + bulletArray.length);
+				//console.log("flying bullets: " + flyingBullets.length);
+				if(ammo !== undefined){
+					ammo.position.x = anim1.position.x;
+					ammo.position.y = anim1.position.y;
+					ammo.vx = 0;
+					ammo.vy = 0;
+					ammo.visible = false;
 
-				console.log(flyingBullets.length);
-				console.log(flyingBullets.indexOf(ammo));
-				ammo.position.x = anim1.position.x;
-				ammo.position.y = anim1.position.y;
-				ammo.vx = 0;
-				ammo.vy = 0;
-				ammo.visible = false;
+					bulletArray.push(ammo);
+				}
 
-				bulletArray.push(ammo);
-				console.log(bulletArray.length);
 			}
 
 			function checkBulletPositions(){
@@ -315,7 +332,6 @@
 			}
 
 			function initMinions(){
-				agent = PIXI.utils.TextureCache["resources/agent.png"];
 
 				bunnyArray = [];
 
@@ -333,14 +349,14 @@
 
 				}
 
-				var rec2 = new PIXI.Rectangle(12, 5, 25, 42);
-				agent.frame = rec2;
-				robot = new PIXI.Sprite(agent);
+
+				robot = new PIXI.Sprite(PIXI.Texture.fromImage('resources/bullet.png'));
 
 				robot.position.x = 200;
 				robot.position.y = 200;
 				robot.anchor.x = 0.5;
 				robot.anchor.y = 0.5;
+				robot.visible = false;
 
 				robot.vx = 0;
 				robot.vy = 0;
@@ -349,7 +365,7 @@
 				for(var i = 0; i < 20; i += 1){
 					var bullet = new PIXI.Sprite(PIXI.Texture.fromImage('resources/bullet.png'));
 
-					bullet.position.x = anim1.position.x + anim1.width;
+					bullet.position.x = anim1.position.x + 20;
 					bullet.position.y = anim1.position.y;
 					bullet.vx = 0;
 					bullet.vy = 0;
