@@ -7,6 +7,7 @@ var strategy = require('passport-http');
 var crypto = require('crypto');
 
 var server = express();
+var path = require('path');
 var database = new sqlite.Database('database.sqlite');
 
 /*
@@ -97,7 +98,7 @@ server.get('/newUser', function(req, res){
   };
 
   var newUserSuccess = function(){
-    res.status(302);
+    res.status(200);
     res.set({
       'Content-Type': 'text/plain'
     });
@@ -149,7 +150,7 @@ server.get('/login', function(req, res){
   };
 
   var loginSuccess = function(rows){
-    res.status(302);
+    res.status(200);
     res.set({
       'Content-Type': 'text/plain'
     });
@@ -157,6 +158,26 @@ server.get('/login', function(req, res){
     res.send('User: ' + req.query.username + ' logged in');
   };
 
+  prepare();
+
+});
+
+server.get('/goToGame', function(req, res){
+  var prepare = function(){
+    if(req.query.username === undefined){
+      req.query.username = '';
+    }
+    goToGame();
+  }
+
+  var goToGame = function(){
+    res.status(200);
+    res.set({
+      'Content-Type': 'text/html'
+    });
+    res.sendFile(path.join(__dirname +'/lorem.html'));
+    //res.send('User: ' + req.query.username + ' logged in');
+  };
   prepare();
 
 });
@@ -171,7 +192,7 @@ server.get('/getMaxScore', function(req, res){
 
   var getMaxScore = function(){
     database.all(`
-      SELECT MAX(score) FROM game_stats
+      SELECT MAX(score) AS score FROM game_stats
         JOIN users ON(game_stats.user_id = users.id)
         WHERE username = :username
         ;`
@@ -181,10 +202,10 @@ server.get('/getMaxScore', function(req, res){
           scoreError(err);
           return;
         }
-        /*if (rows.length === 0){
+        if (rows.length === 0){
           scoreError('No max score available.');
           return;
-        }*/
+        }
         scoreSuccess(rows);
       });
   };
@@ -202,7 +223,7 @@ server.get('/getMaxScore', function(req, res){
     res.set({
       'Content-Type': 'text/plain'
     });
-    res.send(JSON.stringify(rows));
+    res.send(rows);
   };
 
   prepare();
