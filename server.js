@@ -2,27 +2,11 @@
 
 var express = require('express');
 var sqlite = require('sqlite3');
-var passport = require('passport');
-var strategy = require('passport-http');
 var crypto = require('crypto');
 
 var server = express();
 var path = require('path');
 var database = new sqlite.Database('database.sqlite');
-
-/*
-server.use(passport.initialize());
-
-passport.use(new strategy.BasicStrategy(
-  function(user, pass, done) {
-    console.log(user + pass);
-    if (user.valueOf() === 'test' &&
-      pass.valueOf() === 'logmein')
-      return done(null, true);
-    else
-      return done(null, false);
-  }
-));*/
 
 function hashPassword(password) {
   var hash = crypto.createHash('sha256');
@@ -102,6 +86,7 @@ server.get('/newUser', function(req, res){
     res.set({
       'Content-Type': 'text/plain'
     });
+    //Could not get the redirect working correctly
     //res.redirect('/gameStart');
     res.send('New user: ' + req.query.username + ' created successfuly');
   };
@@ -154,6 +139,7 @@ server.get('/login', function(req, res){
     res.set({
       'Content-Type': 'text/plain'
     });
+    //Could not get the rediret working correctly
     //res.redirect('/gameStart');
     res.send('User: ' + req.query.username + ' logged in');
   };
@@ -162,6 +148,7 @@ server.get('/login', function(req, res){
 
 });
 
+//Tried using this method as well
 server.get('/goToGame', function(req, res){
   var prepare = function(){
     if(req.query.username === undefined){
@@ -175,7 +162,7 @@ server.get('/goToGame', function(req, res){
     res.set({
       'Content-Type': 'text/html'
     });
-    res.sendFile(path.join(__dirname +'/lorem.html'));
+    res.sendFile(path.join(__dirname +'/game.html'));
     //res.send('User: ' + req.query.username + ' logged in');
   };
   prepare();
@@ -200,10 +187,6 @@ server.get('/getMaxScore', function(req, res){
       }, function(err, rows){
         if(err !== null){
           scoreError(err);
-          return;
-        }
-        if (rows.length === 0){
-          scoreError('No max score available.');
           return;
         }
         scoreSuccess(rows);
@@ -252,10 +235,6 @@ server.get('/addScore', function(req, res){
           scoreError(err);
           return;
         }
-        /*if (rows.length === 0){
-          scoreError('No max score available.');
-          return;
-        }*/
         scoreSuccess(rows);
       });
   };
@@ -279,6 +258,5 @@ server.get('/addScore', function(req, res){
   prepare();
 
 });
-
 
 server.listen(process.env.PORT || 8080);
