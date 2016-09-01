@@ -3,7 +3,6 @@
 	<head>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/3.0.11/pixi.min.js"></script>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-
 	</head>
 	<body>
 		<canvas id="example"></canvas>
@@ -29,7 +28,6 @@
 			var displayScore;
 			var anim1;
 			var anim2;
-			//var bullet;
 			var bunnArray;
 			var bulletArray = [];
 			var flyingBullets = [];
@@ -80,10 +78,6 @@
 				startButton.on('mouseover', startGame);
 				pixiStartStage.addChild(startButton);
 
-
-
-
-
 				farBackground = initFarBackground();
 				midBackground = initMidBackground();
 
@@ -100,14 +94,12 @@
 				}
 
 				anim1 = animateRunInit();
-				//anim2 = animateIdleInit();
 
 				initMinions();
 
 				pixiGameStage.addChild(displayScore);
 
 				document.addEventListener('keydown', keyDown);
-				//document.addEventListener('keyup', keyUp);
 				document.addEventListener('mousedown', mousedown);
 
 				jQuery.ajax({
@@ -116,33 +108,28 @@
 					'dataType': 'json',
 					'success': function(data){
 						highScore.text = 'High Score: ' + data[0].score;},
-					//console.log(data[0].score)},
 					'error': function(data){console.log("Failure");}
 				});
-				state = play;
 
 				functionGameloop();
 			}
 
 			function functionGameloop() {
 
-				state();
-
-				//pixiRenderer.render(pixiGameStage);
+				play();
 				pixiRenderer.render(stage);
 				requestAnimationFrame(functionGameloop);
-
 			};
 
 			function play(){
 				deadBunnyCount = 0;
+
 				moveBullets();
 				checkBulletPositions();
 
-
-
 				if(robot.vx != 0 || robot.vy != 0){
 					shiftPath();
+
 					robot.position.x += robot.vx;
 					robot.position.y += robot.vy;
 
@@ -158,15 +145,11 @@
 							endGame();
 						}
 					}
-
-
 					animateRun(anim1);
 				}
 				else{
-					//animateIdle(anim2);
 					stopRun(anim1);
 				}
-
 			}
 
 			function keyDown(key){
@@ -188,12 +171,6 @@
 				}
 			}
 
-			function keyUp(key){
-				if(key.keyCode === 68 || key.keyCode === 65){
-					robot.vx = 0;
-				}
-			}
-
 			function mousedown(e){
 				var data = pixiRenderer.plugins.interaction.mouse.global;
 				spawnBullets(data);
@@ -202,7 +179,6 @@
 			function startGame(){
 				pixiStartStage.visible = false;
 				pixiGameStage.visible = true;
-
 			}
 
 			function endGame(){
@@ -226,9 +202,6 @@
 			}
 
 			function spawnBullets(data){
-				//var bunnyChangeX = data.x - pixiBunny.position.x;
-				//var bunnyChangeY = data.y - pixiBunny.position.y;
-
 				var bullet = bulletArray.shift();
 				bullet.visible = true;
 				var bulletChangeX = data.x - bullet.position.x;
@@ -252,7 +225,6 @@
 					//Distance between the objects
 					var distX = Math.abs(obj1.xCenter - obj2Array[i].xCenter);
 					var distY = Math.abs(obj1.yCenter - obj2Array[i].yCenter);
-					//console.log("x " + distX + " y " + distY);
 
 					if(distX < (obj1.width/2 + obj2Array[i].width/2)){
 						if(distY < (obj1.height/2 + obj2Array[i].height/2)){
@@ -262,15 +234,12 @@
 							pixiGameStage.removeChild(obj2Array[i]);
 							var temp = flyingBullets.splice(flyingBullets.indexOf(obj1), 1);
 							bulletReload(temp[0]);
-
 						}
 					}
 				}
 			}
 
 			function bulletReload(ammo){
-				//console.log("bullet array: " + bulletArray.length);
-				//console.log("flying bullets: " + flyingBullets.length);
 				if(ammo !== undefined){
 					ammo.position.x = anim1.position.x;
 					ammo.position.y = anim1.position.y;
@@ -280,7 +249,6 @@
 
 					bulletArray.push(ammo);
 				}
-
 			}
 
 			function checkBulletPositions(){
@@ -304,10 +272,8 @@
 
 			function initFarBackground(){
 				var bg
-				//bg = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-far.png"), 1240, 512);
+
 				bg = new PIXI.extras.TilingSprite(PIXI.loader.resources["resources/bg-far.png"].texture, 1240, 512);
-
-
 				bg.position.x = 0;
 				bg.position.y = 0;
 				bg.tilePosition.x = 0;
@@ -318,49 +284,40 @@
 
 			function initMidBackground(){
 				var bg;
-				//bg = new PIXI.extras.TilingSprite(PIXI.Texture.fromImage("resources/bg-mid.png"), 1240, 512);
-				bg = new PIXI.extras.TilingSprite(PIXI.loader.resources["resources/bg-mid.png"].texture, 1240, 512);
 
+				bg = new PIXI.extras.TilingSprite(PIXI.loader.resources["resources/bg-mid.png"].texture, 1240, 512);
 				bg.position.x = 0;
 				bg.position.y = (pixiRenderer.height/2) - 35;
 				bg.tilePosition.x = 0;
 				bg.tilePosition.y = 0;
-				//midBackground.tilePosition.y = pixiRenderer.height * 0.65;
-				//midBackground.width = pixiRenderer.width;
-				//midBackground.height = midBackground.position.y - pixiRenderer.height;
+
 				return bg;
 			}
 
 			function initMinions(){
-
 				bunnyArray = [];
 
 				for(var i = 0; i< 20; i+=1){
 					pixiBunny = new PIXI.Sprite(PIXI.Texture.fromImage('http://mercury.cs.pdx.edu/bunny.png'));
 					pixiBunny.position.x = Math.random() * pixiRenderer.width;
 					pixiBunny.position.y = Math.random() * pixiRenderer.height/4;
-					//pixiBunny.position.y = 450;
 					pixiBunny.anchor.x = 0.5;
 					pixiBunny.anchor.y = 0.5;
 
 					pixiGameStage.addChild(pixiBunny);
 
 					bunnyArray.push(pixiBunny);
-
 				}
 
-
+				//There is a much better way to do this to move the screen
 				robot = new PIXI.Sprite(PIXI.Texture.fromImage('resources/bullet.png'));
-
 				robot.position.x = 200;
 				robot.position.y = 200;
 				robot.anchor.x = 0.5;
 				robot.anchor.y = 0.5;
 				robot.visible = false;
-
 				robot.vx = 0;
 				robot.vy = 0;
-
 
 				for(var i = 0; i < 20; i += 1){
 					var bullet = new PIXI.Sprite(PIXI.Texture.fromImage('resources/bullet.png'));
@@ -374,15 +331,12 @@
 					pixiGameStage.addChild(bullet);
 					bulletArray.push(bullet);
 				}
-
-
 				pixiGameStage.addChild(robot);
-
 			}
 
 			function initPath(){
-				//var tilesheet = PIXI.utils.TextureCache["resources/path.json"];
 				var pathPieces = [];
+
 				var pathPiece = PIXI.Sprite.fromFrame("decoration_03");
   			pathPiece.position.x = -63;
   			pathPiece.position.y = pixiRenderer.height - 135;
@@ -509,29 +463,13 @@
 						var temp = path.shift();
 						temp.position.x = 1323;
 						path.push(temp);
-
 					}
 				}
 			}
 
-			/*function displayGameScore(score){
-				gameScore += toString(score);
-			}*/
 			function updateGameScore(){
 				gameScore += 10;
 				displayScore.text = 'Score: ' + gameScore;
-				//console.log(gameScore);
-			}
-
-			function animateIdleInit(){
-				var textureArray = ['Idle (1).png', 'Idle (2).png', 'Idle (3).png', 'Idle (4).png', 'Idle (5).png', 'Idle (6).png', 'Idle (7).png', 'Idle (8).png', 'Idle (9).png', 'Idle (10).png'];
-				var mc = PIXI.extras.MovieClip.fromFrames(textureArray);
-				mc.scale.set(0.20);
-				mc.position.x = 300;
-				mc.position.y = 100;
-				//mc.play();
-				pixiGameStage.addChild(mc);
-				return mc;
 			}
 
 			function animateRunInit(){
@@ -540,8 +478,7 @@
 				mc.scale.set(0.20);
 				mc.position.x = 300;
 				mc.position.y = 445;
-				//mc.loop.set(false);
-				//mc.play();
+
 				pixiGameStage.addChild(mc);
 				return mc;
 			}
@@ -549,19 +486,11 @@
 			function animateRun(clip){
 				clip.animationSpeed = (0.25);
 				clip.play(1);
-
-			}
-
-			function animateIdle(clip){
-				clip.animationSpeed = (0.25);
-				clip.gotoAndPlay(1);
 			}
 
 			function stopRun(clip){
 				clip.gotoAndStop(1);
 			}
-
-
 
 		</script>
 	</body>
